@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OSINT Consent Dashboard v2</title>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+<header>
+  <div><h1>OSINT Consent Dashboard</h1><span>v2 • IP + consent GPS</span></div>
+  <div id="count">0 lokasi</div>
+</header>
+
+<main>
+<section class="grid">
+<section class="card">
+<h2>🔗 Buat tautan</h2>
+<input id="title" placeholder="Judul halaman">
+<button onclick="createLink()">Buat Link</button>
+<pre id="linkout">Belum ada link.</pre>
+</section>
+<section class="card stats">
+<div><b id="total">0</b><small>Total kunjungan</small></div>
+<div><b id="gps">0</b><small>GPS berizin</small></div>
+<div><b id="ips">0</b><small>IP tercatat</small></div>
+</section>
+</section>
+
+<section class="card">
+<h2>🗺️ Peta GPS berizin</h2>
+<div id="map"></div>
+</section>
+
+<section class="card">
+<h2>📋 Riwayat</h2>
+<div class="tablewrap"><table>
+<thead><tr><th>Waktu</th><th>Token</th><th>IP</th><th>Koordinat</th><th>Akurasi</th><th>Consent</th></tr></thead>
+<tbody id="rows"></tbody>
+</table></div>
+</section>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map = L.map("map").setView([-2.5,118],4);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19}).addTo(map);
+const markers = L.layerGroup().addTo(map);
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
+
+async function createLink(){
+  const title=document.getElementById("title").value.trim() || "Consent landing page";
+  const r=await fetch("/api/link",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title})});
+  const x=await r.json();
+  document.getElementById("linkout").textContent=location.origin+x.url;
+}
+
+async function load(){
+  const r=await fetch("/api/visits");
+  const data=await r.json();
+  const gps=data.filter(v=>v.geo_consent && v.latitude!=null && v.longitude!=null);
+
+  document.getElementById("total").textContent=data.length;
+  document.getElementById("gps").textContent=gps.length;
+  document.getElementById("ips").textContent=data.filter(v=>v.ip).length;
+  document.getElementById("count").textContent=gps.length+" lokasi";
+
+  document.getElementById("rows").innerHTML=data.map(v=>`
+    <tr>
+      <td>${esc(new Date(v.created_at).toLocaleString())}</td>
+      <td>${esc(v.token)}</td>
+      <td>${esc(v.ip||"-")}</td>
+      <td>${v.latitude!=null ? esc(v.latitude)+", "+esc(v.longitude) : "-"}</td>
+      <td>${v.accuracy!=null ? esc(v.accuracy)+" m" : "-"}</td>
+      <td>${v.geo_consent ? "✅ Ya" : "❌ Tidak"}</td>
+    </tr>`).join("");
+
+  markers.clearLayers();
+  gps.forEach(v=>{
+    L.marker([v.latitude,v.longitude]).addTo(markers)
+      .bindPopup("IP: "+esc(v.ip||"-")+"<br>Akurasi: "+esc(v.accuracy||"-")+" m");
+  });
+  if(gps.length) map.fitBounds(L.latLngBounds(gps.map(v=>[v.latitude,v.longitude])),{padding:[30,30]});
+}
+load();
+setInterval(load,5000);
+</script>
+</body>
+</html>
