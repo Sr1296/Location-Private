@@ -1,1 +1,20 @@
-
+*{box-sizing:border-box}
+body{margin:0;background:#0b1020;color:#eef2ff;font-family:Arial,sans-serif}
+header{padding:18px 5%;background:#141a31;border-bottom:1px solid #2c365c;display:flex;justify-content:space-between;align-items:center}
+header h1{margin:0 0 5px;font-size:22px}header span{opacity:.65;font-size:13px}
+main{max-width:1400px;margin:auto;padding:22px}
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:18px}
+.card{background:#141a31;border:1px solid #2c365c;border-radius:14px;padding:20px;margin-bottom:18px}
+input,button{padding:12px;border-radius:9px;border:1px solid #46517e}
+input{background:#090d19;color:#fff;width:65%}
+button{background:#5965ff;color:white;cursor:pointer;font-weight:bold}
+pre{white-space:pre-wrap;word-break:break-all;background:#090d19;padding:12px;border-radius:8px}
+.stats{display:flex;gap:15px;align-items:center;justify-content:space-around}
+.stats div{text-align:center}.stats b{display:block;font-size:28px}.stats small{opacity:.65}
+#map{height:450px;border-radius:10px}
+.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:10px;border-bottom:1px solid #2c365c;text-align:left;white-space:nowrap}
+.consent{max-width:650px;margin:12vh auto;text-align:center}
+.icon{font-size:50px}.status{padding:15px;margin:20px 0;border-radius:10px;background:#0b1020}
+.small{font-size:13px;opacity:.65}
+@media(max-width:800px){.grid{grid-template-columns:1fr}input{width:100%;margin-bottom:10px}.stats{padding:15px}}
